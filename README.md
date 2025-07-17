@@ -20,6 +20,7 @@ yolo-fastapi-deployment/
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
+├── streamlit_app.py
 └── README.md
 ```
 
@@ -28,6 +29,88 @@ yolo-fastapi-deployment/
 - Python 3.8+
 - Docker and Docker Compose
 - YOLO model weights (YOLOv8 recommended)
+
+## Installation and Setup
+
+### Setting up Python Virtual Environment
+
+#### For Windows
+
+1. **Install Python**
+   - Download and install Python from [python.org](https://www.python.org/downloads/windows/)
+   - Select "Add Python to PATH" during installation
+
+2. **Create Virtual Environment**
+   ```cmd
+   # Open Command Prompt or PowerShell
+   cd path\to\project
+   python -m venv env
+   ```
+
+3. **Activate Virtual Environment**
+   ```cmd
+   # For Command Prompt
+   env\Scripts\activate
+
+   # For PowerShell
+   .\env\Scripts\Activate.ps1
+   ```
+
+4. **Install Dependencies**
+   ```cmd
+   pip install -r requirements.txt
+   ```
+
+#### For macOS/Linux
+
+1. **Install Python (if not already installed)**
+   ```bash
+   # For macOS with Homebrew
+   brew install python
+
+   # For Ubuntu/Debian
+   sudo apt update
+   sudo apt install python3 python3-pip python3-venv
+   ```
+
+2. **Create Virtual Environment**
+   ```bash
+   cd path/to/project
+   python3 -m venv env
+   ```
+
+3. **Activate Virtual Environment**
+   ```bash
+   source env/bin/activate
+   ```
+
+4. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Download YOLO Model
+
+```bash
+# After activating the virtual environment
+python setup_model.py
+```
+
+### Running the Application
+
+#### Run FastAPI Server
+```bash
+# Activate virtual environment first
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+#### Run Streamlit Web Application
+```bash
+# Open another terminal and activate virtual environment
+streamlit run streamlit_app.py
+```
+
+The Streamlit web application will automatically open at http://localhost:8501
 
 ## Quick Start
 
@@ -39,6 +122,7 @@ yolo-fastapi-deployment/
 
 2. **Install dependencies (for local development)**
    ```bash
+   # After creating and activating the virtual environment as described above
    pip install -r requirements.txt
    ```
 

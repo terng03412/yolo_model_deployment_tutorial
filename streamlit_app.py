@@ -22,7 +22,19 @@ API_URL = "http://0.0.0.0:8000/predict"
 
 def draw_boxes(image, predictions):
     """Draw bounding boxes on the image based on predictions"""
-    fig, ax = plt.subplots(1, figsize=(12, 9))
+    # Get original image dimensions
+    original_width, original_height = image.size
+    
+    # Create figure with proper aspect ratio
+    aspect_ratio = original_width / original_height
+    if aspect_ratio > 1:
+        fig_width = 12
+        fig_height = 12 / aspect_ratio
+    else:
+        fig_height = 12
+        fig_width = 12 * aspect_ratio
+    
+    fig, ax = plt.subplots(1, figsize=(fig_width, fig_height))
     ax.imshow(np.array(image))
     
     # Generate random colors for different classes
@@ -30,7 +42,7 @@ def draw_boxes(image, predictions):
     
     # Draw each bounding box
     for pred in predictions:
-        # Get coordinates
+        # Get coordinates (these should already be in the correct scale from the API)
         x1 = pred["bbox"]["x1"]
         y1 = pred["bbox"]["y1"]
         x2 = pred["bbox"]["x2"]
@@ -50,7 +62,7 @@ def draw_boxes(image, predictions):
         # Create rectangle patch
         rect = patches.Rectangle(
             (x1, y1), width, height, 
-            linewidth=2, 
+            linewidth=3, 
             edgecolor=color, 
             facecolor='none'
         )
@@ -58,16 +70,24 @@ def draw_boxes(image, predictions):
         # Add patch to plot
         ax.add_patch(rect)
         
-        # Add label
+        # Add label with better positioning
+        label_y = max(y1 - 10, 10)  # Ensure label doesn't go off-screen
         plt.text(
-            x1, y1-5, 
+            x1, label_y, 
             f"{class_name}: {confidence:.2f}", 
-            color=color, 
-            fontsize=10, 
-            bbox=dict(facecolor='white', alpha=0.7)
+            color='white',
+            fontsize=12, 
+            fontweight='bold',
+            bbox=dict(facecolor=color, alpha=0.8, pad=2)
         )
     
+    # Set axis limits to match image dimensions exactly
+    ax.set_xlim(0, original_width)
+    ax.set_ylim(original_height, 0)  # Invert y-axis for image coordinates
+    ax.set_aspect('equal')
     plt.axis('off')
+    plt.tight_layout()
+    
     return fig
 
 # File uploader
@@ -87,8 +107,15 @@ if uploaded_file is not None:
         if st.button("Detect Objects"):
             with st.spinner("Detecting objects..."):
                 try:
+                    # Reset file pointer to beginning
+                    uploaded_file.seek(0)
+                    
+                    # Get the original filename and content type
+                    filename = uploaded_file.name
+                    content_type = uploaded_file.type
+                    
                     # Prepare the file for the API request
-                    files = {"file": ("image.jpg", uploaded_file.getvalue(), "image/jpeg")}
+                    files = {"file": (filename, uploaded_file.getvalue(), content_type)}
                     
                     # Make API request
                     response = requests.post(API_URL, files=files)

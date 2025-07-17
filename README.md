@@ -180,10 +180,95 @@ print(response.json())
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### Production with Docker
-```bash
-docker-compose up -d
+### Docker Deployment
+
+#### Building and Running with Docker
+
+1. **Build the Docker image**
+   ```bash
+   # Build the image with a tag
+   docker build -t yolo-detection-api .
+   
+   # Check that the image was created
+   docker images
+   ```
+
+2. **Run the Docker container**
+   ```bash
+   # Run the container, mapping port 8000
+   docker run -p 8000:8000 --name yolo-api yolo-detection-api
+   ```
+
+3. **Stop the container**
+   ```bash
+   docker stop yolo-api
+   ```
+
+4. **Remove the container**
+   ```bash
+   docker rm yolo-api
+   ```
+
+#### Using Docker Compose
+
+1. **Build and start services**
+   ```bash
+   docker-compose up --build
+   ```
+
+2. **Run in detached mode (background)**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **View logs**
+   ```bash
+   docker-compose logs -f
+   ```
+
+4. **Stop services**
+   ```bash
+   docker-compose down
+   ```
+
+#### Docker Compose Configuration
+
+The `docker-compose.yml` file includes both the FastAPI service and a Streamlit web interface:
+
+```yaml
+version: '3'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+    environment:
+      - MODEL_PATH=models/yolov8n.pt
+      - CONFIDENCE_THRESHOLD=0.5
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    environment:
+      - API_URL=http://api:8000/predict
+    restart: unless-stopped
 ```
+
+> Note: You may need to create a separate Dockerfile for the Streamlit application (Dockerfile.streamlit) if you want to run both services with Docker Compose.
 
 ### Production with uvicorn (without Docker)
 ```bash
